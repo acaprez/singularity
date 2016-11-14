@@ -179,9 +179,6 @@ void chomp(char *str) {
         str[0] = '\0';
     }
 
-    if ( str[len - 1] == '\n' ) {
-        str[len - 1] = '\0';
-    }
 }
 
 int strlength(const char *string, int max_len) {
