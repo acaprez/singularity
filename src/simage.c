@@ -49,11 +49,10 @@
 
 
 int main(int argc_in, char ** argv_in) {
-    // Note: SonarQube complains when we change the value of parameters, even
-    // in obviously-OK cases like this one...
     char **argv = argv_in;
     int argc = argc_in;
     long int size = 1024;
+    char *containerimage;
     
     if ( argv[1] == NULL ) {
         fprintf(stderr, "USAGE: %s [bootstrap/mount/bind/create/expand] [args]\n", argv[0]);
@@ -68,17 +67,28 @@ int main(int argc_in, char ** argv_in) {
      * singularity_priv_escalate can be used to ensure that the calling user is root.
      */
     singularity_priv_init();
+    singularity_priv_drop();
 
     /* Loop until we've gone through argv and returned */
     while ( 1 ) {
         singularity_message(DEBUG, "Running %s %s workflow\n", argv[0], argv[1]);
 
-        singularity_priv_escalate();
         if ( argv[1] == NULL ) {
             singularity_message(DEBUG, "Finished running simage command and returning\n");
             return(0);
         }
 
+        /* Run image exec workflow */
+        else if ( strcmp(argv[1], "exec") == 0 ) {
+            if ( ( (containerimage = argv[2]) == NULL ) || ( argv[3] == NULL ) ) {
+                fprintf(stderr, "USAGE: %s exec [singularity container image] [action] (args)\n", argv[0]);
+            }
+            if ( singularity_priv_runsuidbinary(argv) == 0 ) {
+                singularity_image_exec(containerimage, &argv[3]);
+                return(0);
+            }
+        }
+        
         /* Run image mount workflow */
         else if ( strcmp(argv[1], "mount") == 0 ) {
             if ( singularity_image_mount(argc - 1, &argv[1]) != 0 ) {
@@ -134,6 +144,5 @@ int main(int argc_in, char ** argv_in) {
         
         argv++;
         argc--;
-        singularity_priv_drop();
     }
 }
