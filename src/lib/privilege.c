@@ -39,7 +39,7 @@
 #include "util/file.h"
 #include "util/util.h"
 #include "lib/message.h"
-//#include "singularity.h"
+#include "singularity.h"
 
 
 
@@ -325,3 +325,82 @@ int singularity_priv_getgidcount(void) {
     return uinfo.gids_count;
 }
 
+int singularity_priv_runsuidbinary(char **argv) {
+    
+#ifdef SINGULARITY_SUID
+    
+    singularity_message(VERBOSE2, "Running SUID program workflow\n");
+
+    singularity_message(VERBOSE2, "Checking program has appropriate permissions\n");
+    if ( ( getuid() != 0 ) && ( ( is_owner("/proc/self/exe", 0) < 0 ) || ( is_suid("/proc/self/exe") < 0 ) ) ) {
+        singularity_abort(255, "This program must be SUID root\n");
+    }
+    
+    singularity_message(VERBOSE2, "Checking configuration file is properly owned by root\n");
+    if ( is_owner(joinpath(SYSCONFDIR, "/singularity/singularity.conf"), 0 ) < 0 ) {
+        singularity_abort(255, "Running in privileged mode, root must own the Singularity configuration file\n");
+    }
+    
+    singularity_config_open(joinpath(SYSCONFDIR, "/singularity/singularity.conf"));
+    
+    singularity_config_rewind();
+    
+    singularity_message(VERBOSE2, "Checking that we are allowed to run as SUID\n");
+    if ( singularity_config_get_bool("allow setuid", 1) == 0 ) {
+        singularity_abort(255, "SUID mode has been disabled by the sysadmin... Aborting\n");
+    }
+    
+    singularity_message(VERBOSE2, "Checking if we were requested to run as NOSUID by user\n");
+    if ( envar_defined("SINGULARITY_NOSUID") == TRUE ) {
+        singularity_abort(1, "NOSUID mode has been requested... Aborting\n");
+    }
+    
+#else
+    
+    singularity_message(VERBOSE, "Running NON-SUID program workflow\n");
+
+    singularity_message(DEBUG, "Checking program has appropriate permissions\n");
+    if ( is_suid("/proc/self/exe") >= 0 ) {
+        singularity_abort(255, "This program must **NOT** be SUID\n");
+    }
+
+    singularity_config_open(joinpath(SYSCONFDIR, "/singularity/singularity.conf"));
+
+    singularity_config_rewind();
+
+    if ( singularity_priv_getuid() != 0 ) {
+        singularity_message(VERBOSE2, "Checking that we are allowed to run as SUID\n");
+        if ( singularity_config_get_bool("allow setuid", 1) == 1 ) {
+            singularity_message(VERBOSE2, "Checking if we were requested to run as NOSUID by user\n");
+            if ( envar_defined("SINGULARITY_NOSUID") == FALSE ) {
+                char sexec_suid_path[] = LIBEXECDIR "/singularity/sexec-suid";
+
+                singularity_message(VERBOSE, "Checking for sexec-suid at %s\n", sexec_suid_path);
+
+                if ( is_file(sexec_suid_path) == 0 ) {
+                    if ( ( is_owner(sexec_suid_path, 0 ) == 0 ) && ( is_suid(sexec_suid_path) == 0 ) ) {
+                        singularity_message(VERBOSE, "Invoking SUID sexec: %s\n", sexec_suid_path);
+
+                        execv(sexec_suid_path, argv); // Flawfinder: ignore
+                        singularity_abort(255, "Failed to execute sexec binary (%s): %s\n", sexec_suid_path, strerror(errno));
+                    } else {
+                        singularity_message(VERBOSE, "Not invoking SUID mode: SUID sexec permissions not properly set\n");
+                    }
+                }
+                else {
+                    singularity_message(VERBOSE, "Not invoking SUID mode: SUID sexec not installed\n");
+                }
+            } else {
+                singularity_message(VERBOSE, "Not invoking SUID mode: NOSUID mode requested\n");
+            }
+        } else {
+            singularity_message(VERBOSE, "Not invoking SUID mode: disallowed by the system administrator\n");
+        }
+    } else {
+        singularity_message(VERBOSE, "Not invoking SUID mode: running as root\n");
+    }
+
+#endif
+
+    return(0);
+}
