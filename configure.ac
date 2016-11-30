@@ -294,6 +294,7 @@ AC_CONFIG_FILES([
    singularity.spec
    test.sh
    src/Makefile
+   src/bootstrap/Makefile
    src/lib/Makefile
    src/lib/ns/Makefile
    src/lib/ns/ipc/Makefile

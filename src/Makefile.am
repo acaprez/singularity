@@ -1,4 +1,4 @@
-SUBDIRS = lib util slurm
+SUBDIRS = lib util slurm bootstrap
 
 MAINTAINERCLEANFILES = Makefile.in config.h config.h.in
 DISTCLEANFILES = Makefile
@@ -17,7 +17,7 @@ sexec_SOURCES = sexec.c util/util.c util/file.c
 sexec_LDADD = lib/libsingularity.la
 
 sexec_suid_SOURCES = sexec.c util/util.c util/file.c
-sexec_suid_LDADD = lib/libsingularity.la
+sexec_suid_LDADD = lib/libsingularity.la bootstrap/libbootstrap.la
 sexec_suid_LDFLAGS = -static
 sexec_suid_CPPFLAGS = -DSINGULARITY_SUID $(AM_CPPFLAGS)
 
