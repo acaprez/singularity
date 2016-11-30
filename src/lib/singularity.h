@@ -84,6 +84,9 @@
     extern char *singularity_rootfs_dir(void);
     // Check to make sure rootfs is valid
     extern int singularity_rootfs_check(void);
+    // Return the loop device currently being used
+    extern char *singularity_rootfs_image_loopdev(void);
+
 
     // LOOP
     // Bind an image to the next available loop device, and return the device
@@ -91,8 +94,6 @@
     extern char *singularity_loop_bind(FILE *image_fp);
     // Free the bound device
     extern int singularity_loop_free(char *loop_dev);
-    // Return the loop device currently being used
-    extern char *rootfs_image_loopdev(void);
 
 
     // ACTION
