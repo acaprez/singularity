@@ -98,6 +98,10 @@ int rootfs_image_init(char *source, char *mount_dir) {
     return(0);
 }
 
+char *rootfs_image_loopdev(void) {
+    return(loop_dev);
+}
+
 
 int rootfs_image_mount(void) {
 

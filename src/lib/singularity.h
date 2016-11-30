@@ -91,6 +91,8 @@
     extern char *singularity_loop_bind(FILE *image_fp);
     // Free the bound device
     extern int singularity_loop_free(char *loop_dev);
+    // Return the loop device currently being used
+    extern char *rootfs_image_loopdev(void);
 
 
     // ACTION
