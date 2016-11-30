@@ -37,6 +37,7 @@
 
 int main(int argc, char **argv) {
     char *image;
+    char *command;
 
     // Before we do anything, check privileges and drop permission
     singularity_priv_init();
@@ -115,29 +116,53 @@ int main(int argc, char **argv) {
 
 #endif /* SINGULARITY_SUID */
 
-    if ( ( image = envar_path("SINGULARITY_IMAGE") ) == NULL ) {
-        singularity_abort(255, "SINGULARITY_IMAGE not defined!\n");
+
+    singularity_message(DEBUG, "Entering logic portion of code\n");
+
+    if ( ( command = envar("SINGULARITY_COMMAND", "", 64) ) != NULL ) {
+        singularity_message(DEBUG, "Checking SINGULARITY_COMMAND value: %s\n", command);
+        if ( ( strcmp(command, "shell") == 0 ) || ( strcmp(command, "exec") == 0 ) || ( strcmp(command, "run") == 0 ) || ( strcmp(command, "test") == 0 ) ) {
+            singularity_message(VERBOSE, "Running container workflow\n");
+            if ( ( image = envar_path("SINGULARITY_IMAGE") ) == NULL ) {
+                singularity_abort(255, "SINGULARITY_IMAGE not defined!\n");
+            }
+
+            singularity_action_init();
+            singularity_rootfs_init(image);
+            singularity_sessiondir_init(image);
+
+            free(image);
+
+            singularity_ns_unshare();
+            singularity_rootfs_mount();
+            singularity_rootfs_check();
+            singularity_file();
+            singularity_mount();
+            singularity_rootfs_chroot();
+            singularity_action_do(argc, argv); // This will exec, so no need to return()
+        }
+    } else {
+        // TODO: Move this all to SINGULARITY_COMMAND section
+        if ( argv[1] == NULL ) {
+            fprintf(stderr, "USAGE: %s [bootstrap/mount/bind/create/expand] [args]\n", argv[0]);
+            return(1);
+        }
+
+        if ( strcmp(argv[1], "create") == 0 ) {
+            long int size = 768;
+
+            if ( argv[2] == NULL ) {
+                fprintf(stderr, "USAGE: %s create [singularity container image] [size in MiB]\n", argv[0]);
+            }
+            if ( argv[3] != NULL ) {
+                size = ( strtol(argv[3], (char **)NULL, 10) );
+                singularity_message(DEBUG, "Setting size to: %d\n", size);
+            }
+            return(singularity_image_create(argv[2], size));
+        } else {
+            singularity_message(WARNING, "No idea what to do... Byes.\n");
+        }
     }
-
-    singularity_action_init();
-    singularity_rootfs_init(image);
-    singularity_sessiondir_init(image);
-
-    free(image);
-
-    singularity_ns_unshare();
-
-    singularity_rootfs_mount();
-
-    singularity_rootfs_check();
-
-    singularity_file();
-
-    singularity_mount();
-
-    singularity_rootfs_chroot();
-
-    singularity_action_do(argc, argv);
 
     return(0);
 
