@@ -70,7 +70,7 @@
     extern int singularity_image_mount(int argc, char ** argv);
     // Bind an image. Replaces old image-bind binary
     extern int singularity_image_bind(int argc, char ** argv);
-    extern int singularity_bootstrap(char *containerimage, char *bootdef_path);
+//    extern int singularity_bootstrap(char *containerimage, char *bootdef_path);
 
 
     // ROOTFS
@@ -84,8 +84,6 @@
     extern char *singularity_rootfs_dir(void);
     // Check to make sure rootfs is valid
     extern int singularity_rootfs_check(void);
-    // Return the loop device currently being used
-    extern char *singularity_rootfs_image_loopdev(void);
 
 
     // LOOP
