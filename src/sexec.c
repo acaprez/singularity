@@ -150,15 +150,79 @@ int main(int argc, char **argv) {
 
         if ( strcmp(argv[1], "create") == 0 ) {
             long int size = 768;
+            char *loop_dev;
+            FILE *image_fp;
 
             if ( argv[2] == NULL ) {
                 fprintf(stderr, "USAGE: %s create [singularity container image] [size in MiB]\n", argv[0]);
+                exit(1);
             }
             if ( argv[3] != NULL ) {
                 size = ( strtol(argv[3], (char **)NULL, 10) );
                 singularity_message(DEBUG, "Setting size to: %d\n", size);
             }
-            return(singularity_image_create(argv[2], size));
+
+            image = strdup(argv[2]);
+
+            if ( singularity_image_create(image, size) < 0 ) {
+                singularity_abort(255, "Failed creating image.\n");
+            }
+
+            singularity_sessiondir_init(image);
+            singularity_ns_unshare();
+
+            if ( ( image_fp = fopen(image, "r+") ) == NULL ) { // Flawfinder: ignore
+                singularity_message(ERROR, "Could not open image (read write) %s: %s\n", image, strerror(errno));
+                ABORT(255);
+            }
+
+            if ( ( loop_dev = singularity_loop_bind(image_fp) ) == NULL ) {
+                singularity_abort(255, "Could not bind to loop device\n");
+            }
+
+            free(image);
+
+            singularity_priv_escalate();
+            singularity_message(INFO, "Formatting image with filesystem\n");
+            if ( execlp("mkfs.ext3", "mkfs.ext3", "-q", loop_dev, NULL) < 0 ) {
+                singularity_abort(255, "Failed exec'ing mkfs.ext3 %s\n", strerror(errno));
+            }
+
+        } else if ( strcmp(argv[1], "bootstrap") == 0 ) {
+            char helper[] = LIBEXECDIR "/singularity/bootstrap/main.sh";
+            char *bootstrap_def;
+            char *rootfs_dir;
+            if ( argv[2] == NULL ) {
+                fprintf(stderr, "USAGE: %s bootstrap [singularity container image] [bootstrap definition]\n", argv[0]);
+                exit(1);
+            } else {
+                image = strdup(argv[2]);
+            }
+
+            if ( argv[3] == NULL ) {
+                bootstrap_def = strdup("");
+            } else {
+                bootstrap_def = strdup(argv[3]);
+            }
+
+            singularity_rootfs_init(image);
+            singularity_sessiondir_init(image);
+
+            free(image);
+
+            singularity_ns_unshare();
+            singularity_rootfs_mount();
+
+            if ( ( rootfs_dir = singularity_rootfs_dir() ) < 0 ) {
+                singularity_abort(255, "Could not identify the rootfs_dir\n");
+            }
+
+            setenv("SINGULARITY_ROOTFS", rootfs_dir, 1);
+
+            if ( execlp(helper, helper, bootstrap_def, NULL) < 0  ) {
+                singularity_abort(255, "Failed exec'ing mkfs.ext3 %s\n", strerror(errno));
+            }
+
         } else {
             singularity_message(WARNING, "No idea what to do... Byes.\n");
         }
