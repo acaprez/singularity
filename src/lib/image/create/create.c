@@ -44,7 +44,7 @@ int singularity_image_create(char *image, int size) {
     memset(buff, '\255', BUFFER_SIZE);
     int i;
 
-    singularity_message(VERBOSE, "Creating new sparse image at: %s\n", image);
+    singularity_message(INFO, "Creating new Singularity image at: %s\n", image);
 
     if ( is_file(image) == 0 ) {
         singularity_message(ERROR, "Will not overwrite existing file: %s\n", image);
@@ -58,10 +58,10 @@ int singularity_image_create(char *image, int size) {
         return(-1);
     }
 
-    singularity_message(VERBOSE2, "Writing image header\n");
+    singularity_message(INFO, "Writing header\n");
     fprintf(image_fp, LAUNCH_STRING); // Flawfinder: ignore (LAUNCH_STRING is a constant)
 
-    singularity_message(VERBOSE2, "Expanding image to %dMB\n", size);
+    singularity_message(INFO, "Expanding image to %dMiB\n", size);
     // TODO: there are likely better ways to do this (falloc?); further, we should really handle
     // EINTR here.
     for(i = 0; i < size; i++ ) {
@@ -71,7 +71,7 @@ int singularity_image_create(char *image, int size) {
         }
     }
 
-    singularity_message(VERBOSE2, "Making image executable\n");
+    singularity_message(INFO, "Making image executable\n");
     fchmod(fileno(image_fp), 0755);
 
     fclose(image_fp);
