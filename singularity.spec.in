@@ -96,7 +96,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_libexecdir}/singularity/get-section
 %{_libexecdir}/singularity/image-handler.sh
 %{_libexecdir}/singularity/sexec
-%{_libexecdir}/singularity/simage
 %{_libexecdir}/singularity/functions
 %{_libexecdir}/singularity/defaults
 %{_bindir}/singularity
