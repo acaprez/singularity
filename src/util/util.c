@@ -182,23 +182,27 @@ void chomp(char *str) {
     
     len = strlength(str, 4096);
 
+    // Trim leading whitespace by shifting array up by one
     while ( str[0] == ' ' ) {
         for ( i = 1; i < len; i++ ) {
-	    str[i-1] = str[i];
-	}
-	str[len-1] = '\0';
-	len--;
+            str[i-1] = str[i];
+        }
+        str[len-1] = '\0';
+        len--;
     }
 
+    // Trim trailing whitespace and redefine NULL
     while ( str[len - 1] == ' ' ) {
         str[len - 1] = '\0';
-	len--;
+        len--;
     }
 
+    // If str starts with a new line, there is nothing here
     if ( str[0] == '\n' ) {
         str[0] = '\0';
     }
 
+    // Trim trailing new line characters
     if ( str[len - 1] == '\n' ) {
         str[len - 1] = '\0';
     }
