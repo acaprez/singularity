@@ -115,6 +115,12 @@ while true; do
             export SINGULARITY_TARGET_PWD
             shift
         ;;
+        -r|--registry)
+            shift
+            SINGULARITY_REGISTRY="$1"
+            export SINGULARITY_REGISTRY
+            shift
+        ;;
         -*)
             message ERROR "Unknown option: ${1:-}\n"
             exit 1

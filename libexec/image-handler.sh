@@ -61,13 +61,20 @@ case "$SINGULARITY_IMAGE" in
             ABORT 255
         fi
 
+        if [ -z ${SINGULARITY_REGISTRY+x} ]
+        then
+            REGISTRY=''
+        else
+            REGISTRY="--registry $SINGULARITY_REGISTRY"
+        fi
+
         CONTAINER_DIR="$BASE_CONTAINER_DIR/$NAME"
         if ! mkdir -p "$CONTAINER_DIR"; then
             message ERROR "Failed to create named container_dir\n"
             ABORT 255
         fi
 
-        if ! eval "$SINGULARITY_libexecdir/singularity/python/cli.py --rootfs '$CONTAINER_DIR' --docker '$NAME'"; then
+        if ! eval "$SINGULARITY_libexecdir/singularity/python/cli.py --rootfs '$CONTAINER_DIR' $REGISTRY --docker '$NAME'"; then
             ABORT $?
         fi
         MESSAGELEVEL=0 SINGULARITY_ROOTFS="$CONTAINER_DIR" eval "$SINGULARITY_libexecdir/singularity/bootstrap/main.sh"
