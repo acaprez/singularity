@@ -57,15 +57,19 @@ def add_http(url,use_https=True):
     :param url: the url to add the prefix to
     :param use_https: should we default to https? default is True
     '''
-    scheme = "https://"
+    scheme = "https"
     if use_https == False:
-        scheme="http://"
+        scheme="http"
 
-    parsed = urlparse(url)
-    # Returns tuple with(scheme,netloc,path,params,query,fragment)
+    # Urlparse in 2.6 requires absolute URL to properly parse hostname and port.
+    # It's a bit of a hack, but strip both schemes first then pass absolute
+    # url with scheme parameter to ensure consistent behavior.
+    url = url.replace('http://','')
+    url = url.replace('https://','')
+    parsed = urlparse(("%s%s") % ('//',url),scheme=scheme)
 
-    return "%s%s" %(scheme,"".join(parsed[1:]).rstrip('/'))
-
+    # Returns normalized URL as a string
+    return parsed.geturl()
 
 def api_get_pagination(url):
    '''api_pagination is a wrapper for "api_get" that will also handle pagination
