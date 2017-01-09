@@ -53,6 +53,7 @@ case "$SINGULARITY_IMAGE" in
         NAME=`echo "$SINGULARITY_IMAGE" | sed -e 's@^docker://@@'`
         if [ -n "${SINGULARITY_CACHEDIR:-}" ]; then
             SINGULARITY_CACHEDIR_LOCAL="$SINGULARITY_CACHEDIR"
+            mkdir -p $SINGULARITY_CACHEDIR_LOCAL
         else
             SINGULARITY_CACHEDIR_LOCAL="/tmp"
         fi
