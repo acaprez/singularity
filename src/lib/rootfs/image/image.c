@@ -51,7 +51,7 @@ static FILE *open_as_singularity(const char *source, int allow_user_image) {
     FILE *new_fp = NULL;
     singularity_priv_escalate_singularity();
     singularity_message(DEBUG, "Opening image %s as singularity user.\n", source);
-    if ( (new_fp = fopen(source, "r")) == NULL ) {
+    if ( (new_fp = fopen(source, "re")) == NULL ) {
             singularity_message(ERROR, "Could not open image (%s) as 'singularity' user: %s (errno=%d)\n", source, strerror(errno), errno);
             if (allow_user_image) {
                singularity_message(ERROR, "Additionally, could not open image as invoking user.\n");
@@ -105,7 +105,7 @@ int rootfs_image_init(char *source, char *mount_dir) {
             singularity_message(ERROR, "Writable image requested, but user images disabled.  Only user images may be writable\n");
             ABORT(255);
         }
-        if ( ( image_fp = fopen(source, "r+") ) == NULL ) { // Flawfinder: ignore
+        if ( ( image_fp = fopen(source, "r+e") ) == NULL ) { // Flawfinder: ignore
             singularity_message(ERROR, "Could not open image (read/write) %s: %s\n", source, strerror(errno));
             ABORT(255);
         }
@@ -117,7 +117,7 @@ int rootfs_image_init(char *source, char *mount_dir) {
             }
         }
         read_write = 1;
-    } else if ( allow_user_image && (( image_fp = fopen(source, "r") ) != NULL) ) { // Flawfinder: ignore
+    } else if ( allow_user_image && (( image_fp = fopen(source, "re") ) != NULL) ) { // Flawfinder: ignore
         singularity_message(VERBOSE, "Successfully opened image (read only, as invoking user) %s: %s\n", source, strerror(errno));
     } else if (protected_image_user) {
         image_fp = open_as_singularity(source, allow_user_image);
@@ -154,6 +154,7 @@ int rootfs_image_init(char *source, char *mount_dir) {
 
 
 int rootfs_image_mount(void) {
+    int opts = MS_NOSUID;
 
     if ( mount_point == NULL ) {
         singularity_message(ERROR, "Called image_mount but image_init() hasn't been called\n");
@@ -176,12 +177,15 @@ int rootfs_image_mount(void) {
         ABORT(255);
     }
 
+    if ( getuid() != 0 ) {
+        opts |= MS_NODEV;
+    }
 
     if ( read_write > 0 ) {
         singularity_message(VERBOSE, "Mounting image in read/write\n");
         singularity_priv_escalate();
-        if ( mount(loop_dev, mount_point, "ext3", MS_NOSUID, "errors=remount-ro") < 0 ) {
-            if ( mount(loop_dev, mount_point, "ext4", MS_NOSUID, "errors=remount-ro") < 0 ) {
+        if ( mount(loop_dev, mount_point, "ext3", opts, "errors=remount-ro") < 0 ) {
+            if ( mount(loop_dev, mount_point, "ext4", opts, "errors=remount-ro") < 0 ) {
                 singularity_message(ERROR, "Failed to mount image in (read/write): %s\n", strerror(errno));
                 ABORT(255);
             }
@@ -190,8 +194,8 @@ int rootfs_image_mount(void) {
     } else {
         singularity_priv_escalate();
         singularity_message(VERBOSE, "Mounting image in read/only\n");
-        if ( mount(loop_dev, mount_point, "ext3", MS_NOSUID|MS_RDONLY, "errors=remount-ro") < 0 ) {
-            if ( mount(loop_dev, mount_point, "ext4", MS_NOSUID|MS_RDONLY, "errors=remount-ro") < 0 ) {
+        if ( mount(loop_dev, mount_point, "ext3", opts|MS_RDONLY, "errors=remount-ro") < 0 ) {
+            if ( mount(loop_dev, mount_point, "ext4", opts|MS_RDONLY, "errors=remount-ro") < 0 ) {
                 singularity_message(ERROR, "Failed to mount image in (read only): %s\n", strerror(errno));
                 ABORT(255);
             }

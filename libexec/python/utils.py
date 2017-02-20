@@ -176,6 +176,7 @@ def api_get(url,data=None,default_header=True,headers=None,stream=None,return_re
 
     return stream
 
+
 def basic_auth_header(username, password):
     '''basic_auth_header will return a base64 encoded header object to
     generate a token
@@ -204,13 +205,27 @@ def run_command(cmd):
     try:
         logger.info("Running command %s with subprocess", " ".join(cmd))
         process = subprocess.Popen(cmd,stdout=subprocess.PIPE)
-        output, err = process.communicate()
     except OSError as error:
         logger.error("Error with subprocess: %s, returning None",error)
         return None
-    
+
+    output = process.communicate()[0]
+    if process.returncode != 0:
+        return None
+
     return output
 
+
+def is_number(image):
+    '''is_number determines if the user is providing a singularity hub
+    number (meaning the id of an image to download) vs a full name)
+    :param image: the image name, after the uri is removed (shub://)
+    '''
+    try:
+        float(image)
+        return True
+    except ValueError:
+        return False
 
 
 ############################################################################
