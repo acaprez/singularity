@@ -57,7 +57,7 @@ case "$SINGULARITY_IMAGE" in
         else
             SINGULARITY_CACHEDIR_LOCAL="/tmp"
         fi
-        if ! BASE_CONTAINER_DIR=`mktemp -d $SINGULARITY_CACHEDIR_LOCAL/singularity-container_dir.XXXXXXXX`; then
+        if ! BASE_CONTAINER_DIR=`mktemp -d /tmp/singularity-container_dir.XXXXXXXX`; then
             message ERROR "Failed to create container_dir\n"
             ABORT 255
         fi
