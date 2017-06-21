@@ -108,7 +108,7 @@
 #bind path = /scratch
 bind path = /etc/localtime
 bind path = /etc/hosts
-
+bind path = /work
 
 # USER BIND CONTROL: [BOOL]
 # DEFAULT: @USER_BIND_CONTROL_DEFAULT@
