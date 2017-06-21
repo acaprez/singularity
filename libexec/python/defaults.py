@@ -115,7 +115,7 @@ if not os.path.exists(SINGULARITY_CACHE):
 #######################################################################
 
 # API
-API_BASE = "index.docker.io" # registry
+API_BASE = "hcc-docker-registry.unl.edu" # registry
 API_VERSION = "v2"
 NAMESPACE = "library"
 TAG = "latest"
