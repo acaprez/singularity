@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/util/opt/anaconda/4.3/envs/python-2.7/bin/python
 
 '''
 Copyright (c) 2017, SingularityWare, LLC. All rights reserved.
