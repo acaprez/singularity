@@ -95,6 +95,8 @@ case "$SINGULARITY_IMAGE" in
                     chmod u+rwx "$SINGULARITY_ROOTFS/${file%/}"
                 fi
             done
+            # Workaround for images where /usr/{bin,sbin,lib,lib64} is mounted read-only
+            chmod -f u+rw $SINGULARITY_ROOTFS/usr/{bin,sbin,lib,lib64}
         done
 
         rm -f "$SINGULARITY_CONTENTS"
