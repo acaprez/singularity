@@ -68,6 +68,8 @@ for i in `cat "$SINGULARITY_CONTENTS"`; do
     else
         $SINGULARITY_libexecdir/singularity/bin/docker-extract "$i" || exit $?
     fi
+    # Workaround for images where /usr/{bin,sbin,lib,lib64} is mounted read-only
+    chmod -f u+rw $SINGULARITY_ROOTFS/usr/{bin,sbin,lib,lib64}
 done
 
 rm -f "$SINGULARITY_CONTENTS"
