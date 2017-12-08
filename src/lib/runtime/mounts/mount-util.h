@@ -20,41 +20,10 @@
  * 
 */
 
-#include <errno.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/file.h>
-#include <sys/mount.h>
-#include <unistd.h>
-#include <stdlib.h>
 
-#include "util/file.h"
-#include "util/util.h"
-#include "util/message.h"
-#include "util/config_parser.h"
-#include "util/privilege.h"
+#ifndef __MOUNT_UTIL_H_
+#define __MOUNT_UTIL_H_
 
-#include "../image.h"
+    int check_mounted(char *mountpoint);
 
-
-int _singularity_image_dir_mount(struct image_object *image, char *mount_point) {
-
-    if ( strcmp(image->path, "/") == 0 ) {
-        singularity_message(ERROR, "Naughty naughty naughty...\n");
-        ABORT(255);
-    }
-
-    singularity_priv_escalate();
-    singularity_message(DEBUG, "Mounting container directory %s->%s\n", image->path, mount_point);
-    if ( mount(image->path, mount_point, NULL, MS_BIND|MS_NOSUID|MS_REC|MS_NODEV, NULL) < 0 ) {
-        singularity_message(ERROR, "Could not mount container directory %s->%s: %s\n", image->path, mount_point, strerror(errno));
-        return 1;
-    }
-    singularity_priv_drop();
-
-    return(0);
-}
-
+#endif /* __MOUNT_UTIL_H_ */

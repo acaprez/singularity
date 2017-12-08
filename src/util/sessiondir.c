@@ -39,7 +39,6 @@
 #include "util/config_parser.h"
 #include "util/fork.h"
 #include "util/privilege.h"
-#include "util/mount.h"
 
 #ifndef LOCALSTATEDIR
 #error LOCALSTATEDIR not defined
@@ -91,7 +90,7 @@ int singularity_sessiondir(void) {
 
     singularity_priv_escalate();
     singularity_message(DEBUG, "Mounting sessiondir tmpfs: %s\n", sessiondir);
-    if ( singularity_mount("tmpfs", sessiondir, "tmpfs", MS_NOSUID, sessiondir_size_str) < 0 ){
+    if ( mount("tmpfs", sessiondir, "tmpfs", MS_NOSUID, sessiondir_size_str) < 0 ){
         singularity_message(ERROR, "Failed to mount sessiondir tmpfs %s: %s\n", sessiondir, strerror(errno));
         ABORT(255);
     }
