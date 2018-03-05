@@ -4,6 +4,18 @@
 # Copyright (c) 2017, SingularityWare, LLC. All rights reserved.
 # Copyright (c) 2015-2017, Gregory M. Kurtzer. All rights reserved.
 
+function log_usage {
+	local logger='/util/opt/bin/logger'
+	local syslog_address='10.138.38.26'
+	local syslog_port=5001
+	local tag='singularity-crane'
+	local user=${USER:='unknown'}
+	local jobid=${SLURM_JOB_ID:='unknown'}
+	local image=${NAME:='unknown'}
+	local msg=`printf 'user=%s,image=%s,job=%s' "$user" "$image" "$jobid"`
+	eval $logger -d -n $syslog_address -P $syslog_port -t $tag -p local0.info $msg > /dev/null 2>&1
+}
+
 
 NAME=`echo "$SINGULARITY_IMAGE" | sed -e 's@^docker://@@'`
 
@@ -34,6 +46,7 @@ export SINGULARITY_ROOTFS SINGULARITY_IMAGE SINGULARITY_CONTAINER SINGULARITY_CO
 
 eval_abort "$SINGULARITY_libexecdir/singularity/python/import.py"
 
+log_usage
 message 1 "Creating container runtime...\n"
 message 2 "Importing: base Singularity environment\n"
 zcat $SINGULARITY_libexecdir/singularity/bootstrap-scripts/environment.tar | (cd $SINGULARITY_ROOTFS; tar -xf -) || exit $?
